@@ -1,0 +1,46 @@
+parsesin
+========
+
+The program parsesin converts Novatel GSV files (*.nvd) containing raw data from GPS recievers into human-readable *.txt files.
+
+
+Compile
+=======
+
+$ g++ -o parsesin -m32 parsesin.cpp
+
+Note: This MUST be compiled as 32 bit.  If running on a 64 bit system, you may have to first install the gcc-multilib library to allow this.
+(https://www.geeksforgeeks.org/compile-32-bit-program-64-bit-gcc-c-c/)
+
+Installing g++-multilib on Ubuntu:
+$ sudo apt-get install g++-multilib
+
+
+Run
+===
+
+$ ./parsesin PRN input_file.nvd output_file.txt
+
+The inputs for parsesin are a satellite PRN, input file, and output file
+
+i.e. $ ./parsesin 27 ../Data/1672_2_17.gps ../Data/1672_2_17_PRN27.txt
+
+
+Run All
+=======
+
+$ ./parsesin_all /path/to/data/directory
+
+The script parsesin_all can be used to iterate through satellite PRNs and input files in a directory to automatically generate output *.txt
+files for every satellite for each *.nvd file.  The input parameter is the path to a data directory, which is assumed to contain a
+RawData directory holding all *.nvd files and a TxtData directory where output *.txt files can be saved.  This script does NOT check if an
+output file already exists, so it will regenerate/overwrite any files in TxtData.
+
+
+Run All SVN
+===========
+
+$ ./parsesin_allsvn inputfile.nvd OUTPUTDIR/
+
+The script parsesin_allsvn iterates ONLY thorugh satellite PRNs to automatically generate ouptut *.txt files for every satellite given a
+a particular *.nvd file.  The input parameters are the input *.nvd file and an ouput directory the output *.txt files should be saved to.

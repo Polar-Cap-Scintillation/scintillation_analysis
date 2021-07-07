@@ -11,39 +11,25 @@ import os
 # CERTO data
 certo_data = {}
 
-# Folder Path
-# Change to your own file location
-path = r"C:\Users\TateColby\Desktop\Eureka\2017"
+def parse_certo_its_file(file_path):
 
-# Save Path
-# Change to where you want to save the file to
-savepath = r"C:\Users\TateColby\Desktop\Calctestpy\scintillation_analysis-main\Updatedfiles"
-
-# Change the directory
-os.chdir(path)
-
-# Set window to value between 10-60
-window = 10
-
-# iterate through all file
-for file in os.listdir():
-    # Check whether file is in its format or not
-    if file.endswith(".its"):
-        file_path = f"{path}\{file}"
-
-        # read header
-        with open(file_path) as fileheader:
-            header = [next(fileheader) for x in range(5)]
+        # Some file lack data and need to be thrown out
+        try:
+            # read header
+            with open(file_path) as fileheader:
+                header = [next(fileheader) for x in range(5)]
         
-        # extract file start time and data rate from header
-        split = header[2].split()
-        filestarttime = dt.datetime.strptime(split[4]+' '+split[5],'%Y-%m-%d %H:%M:%S.%f')
-        datarate = float(split[10])
         
-        # get TLE from 4-5 lines of header
-        lineelement1 = header[3]
-        lineelement2 = header[4]
-        
+            # extract file start time and data rate from header
+            split = header[2].split()
+            filestarttime = dt.datetime.strptime(split[4]+' '+split[5],'%Y-%m-%d %H:%M:%S.%f')
+            datarate = float(split[10])
+            
+            # get TLE from 4-5 lines of header
+            lineelement1 = header[3]
+            lineelement2 = header[4]
+        except ValueError:
+            return
         # read data from *.its file
         VHFI, VHFQ, UHFI, UHFQ, _, _, _ = np.loadtxt(file_path,skiprows=8,unpack=True)
         
@@ -86,9 +72,6 @@ for file in os.listdir():
         yvel = [value[1] for value in v]
         zvel = [value[2] for value in v]
         
-        #print(r)  # True Equator Mean Equinox position (km)
-        #print(v)  # True Equator Mean Equinox velocity (km/s)
-        print('Thinking time')
         # Calculate the detrend
         VHF_power_detrend = power_detrend(utime,VHF_power)
         UHF_power_detrend = power_detrend(utime,UHF_power)
@@ -118,5 +101,37 @@ for file in os.listdir():
             for headerline in header:
                 txt_file.write(headerline)
             txt_file.write('EndOfHeader \n')
-            df.to_csv(txt_file, sep='\t')
-            print('I made it')
+            df.to_csv(txt_file, sep=',')
+        return
+
+
+# Folder Path
+# Change to your own file location
+path = r"C:\Users\TateColby\Desktop\Eureka\2018"
+
+# Save Path
+# Change to where you want to save the file to
+savepath = r"C:\Users\TateColby\Desktop\Calctestpy\scintillation_analysis-main\Updatedfiles\Eureka\2018"
+
+# Change the directory
+os.chdir(path)
+
+# Set window to value between 10-60
+window = 10
+
+# Find how many .its files exist in directory
+itsfiles = 0
+for file in os.listdir():
+    if file.endswith('.its'):
+        itsfiles += 1
+
+# Iterate through all file
+currentfile = 0
+for file in os.listdir():
+    # Check whether file is in .its format or not
+    if file.endswith(".its"):
+        currentfile += 1
+        file_path = f"{path}\{file}"
+        parse_certo_its_file(file_path)
+        print('Completed file ' + str(currentfile) + ' of ' + str(itsfiles))
+        

@@ -1,6 +1,7 @@
 """
 comparing speed of bra-ket definition of coefficent of varience
 and standard deviation to numpy bulit in functions
+along with new numpy window sliding view function
 """
 
 import numpy as np
@@ -43,7 +44,7 @@ def bulits4(utime, power, window):
     datarate = 1./np.mean(np.diff(utime))
     hw = int(window/2.*datarate)    # half window in points
     
-    s4 = lambda x: np.std(x, ddof=0) / np.mean(x)
+    s4 = lambda x: np.std(x, ddof=0) / abs(np.mean(x))
     
     return np.array([np.nan]*hw+[s4(power[i-hw:i+hw]) for i in range(hw,len(power)-hw)]+[np.nan]*hw)
 
@@ -54,7 +55,7 @@ def bulits4sliding(utime, power, window):
     rw = np.lib.stride_tricks.sliding_window_view(power,hw*2)
     rw = np.delete(rw,len(rw)-1,0) # Delete last row for accurate results
     
-    return np.concatenate(([np.nan]*hw,np.std(rw,axis=1,ddof=0) / np.mean(rw,axis=1), [np.nan]*hw), axis=None)
+    return np.concatenate(([np.nan]*hw,np.std(rw,axis=1,ddof=0) / abs(np.mean(rw,axis=1)), [np.nan]*hw), axis=None)
 
 
 def braketsp(utime, phase, window):
@@ -82,38 +83,52 @@ def bulitspsliding(utime, phase, window):
 
 # Made this to check if I was doing np.std correctly
 def error(x1,x2):
-    return 200*np.abs(x1-x2)/(x1+x2)
+    err = 200*np.abs(x1-x2)/(x1+x2)
+    if np.nanmax(err) == 0:
+        return True
+    return False
     
-
+# Input the detrended power/phase
 def timediff(utime,power,phase,window):
     
     print('----s4 comparison----')
     print('braket method')
     tic()
-    brakets4(utime,power,window)
+    brs4 = brakets4(utime,power,window)
     toc()
     print('built in numpy method')
     tic()
-    bulits4(utime,power,window)
+    bus4 = bulits4(utime,power,window)
     toc()
     print('built in numpy with window sliding method')
     tic()
-    bulits4sliding(utime,power,window)
+    bus4s = bulits4sliding(utime,power,window)
     toc()
     
     print('----sigmaphi comparison----')
     print('braket method')
     tic()
-    braketsp(utime,phase,window)
+    brsp = braketsp(utime,phase,window)
     toc()
     print('built in numpy method')
     tic()
-    bulitsp(utime,phase,window)
+    busp = bulitsp(utime,phase,window)
     toc()
     print('built in numpy with window sliding method')
     tic()
-    bulitspsliding(utime,phase,window)
+    busps = bulitspsliding(utime,phase,window)
     toc()
+    
+    if error(brs4, bus4):
+        print('Built in numpy does not match the original braket method for S4')
+    if error(brs4, bus4s):
+        print('Built in numpy with window sliding does not match the original braket method for S4')
+    if error(brsp, busp):
+        print('Built in numpy does not match the original braket method for sigma phi')
+    if error(brsp, busps):
+        print('Built in numpy with window sliding does not match the original braket method for sigma phi')
+        
+    
     return None
     
     

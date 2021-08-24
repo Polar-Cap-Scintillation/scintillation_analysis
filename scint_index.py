@@ -10,7 +10,7 @@ def S_4(utime, power, window):
     rw = np.lib.stride_tricks.sliding_window_view(power,hw*2)
     rw = np.delete(rw,len(rw)-1,0) # Delete last row for accurate results
     
-    return np.concatenate(([np.nan]*hw,np.std(rw,axis=1,ddof=0) / np.mean(rw,axis=1), [np.nan]*hw), axis=None)
+    return np.concatenate(([np.nan]*hw,np.std(rw,axis=1,ddof=0) / abs(np.mean(rw,axis=1)), [np.nan]*hw), axis=None)
 
 
 def sigma_phi(utime, phase, window):

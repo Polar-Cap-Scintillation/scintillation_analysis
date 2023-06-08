@@ -17,8 +17,9 @@ from chain_credentials import *
 
 def get_chain_sites():
     # read in CHAIN site information from table
+    site_file = os.path.join(os.path.dirname(__file__), 'CHAINsites.txt')
     CHAINsites = {}
-    with open('CHAINsites.txt', newline='') as f:
+    with open(site_file, newline='') as f:
         reader = csv.reader(f)
         for row in reader:
             CHAINsites[row[1]] = {'name':row[0],'glat':float(row[2]),'glon':float(row[3]),'model':row[4]}
@@ -64,7 +65,8 @@ def download(site, date, chaindatadir):
     localfile = localpath.joinpath('Raw',filename)
 
 #     try:
-    with FTP('chain.physics.unb.ca') as ftp:
+    # with FTP('chain.physics.unb.ca') as ftp:
+    with FTP('ftp.chain-project.net') as ftp:
         ftp.login(user=CHAIN_USERNAME,passwd=CHAIN_PASSWORD)
 
         with open(localfile, 'wb') as fp:
@@ -117,7 +119,7 @@ def extract_novatel(novfile):
     with TemporaryDirectory() as unpackdir:
 
         # extract text files
-        system_call = 'parsesin/parsesin_allsvn {} {}/'.format(novfile, unpackdir)
+        system_call = '{} {} {}/'.format(os.path.join(os.path.dirname(__file__), 'parsesin/parsesin_allsvn'), novfile, unpackdir)
         os.system(system_call)
 
         data = {}

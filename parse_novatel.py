@@ -84,7 +84,7 @@ def read_file(filename):
                 # print(df)
                 
                 for i in range(50):
-                    d = {'WNC':wnc, 'TOW':tow/1000.+i*0.2}
+                    d = {'WNC':wnc, 'TOW':tow/1000.+i*0.02}
                     for prn, data in df.items():
                         d['phase-{:02d}-L1'.format(prn)] = data['phase'][i]
                         d['power-{:02d}-L1'.format(prn)] = data['power'][i]

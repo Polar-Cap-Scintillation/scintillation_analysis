@@ -2,39 +2,28 @@
 # Functions to detrend the power and phase timeseries
 
 import numpy as np
-from scipy.signal import butter, filtfilt, detrend
+from scipy import signal
 
-def power_detrend(utime, power):
-    datarate = 1./np.mean(np.diff(utime))
-    cutoff=0.1
+def power_detrend(power, datarate=50, cutoff=0.1):
 
-    b, a = butter(6,cutoff/(0.5*datarate))
-    y = filtfilt(b,a,power)
-    power_detrend = power/y
+    sos = signal.butter(6, cutoff, 'low', fs=datarate, output='sos')
+    trend = signal.sosfiltfilt(sos, power)
+
+    power_detrend = power/trend
+    
     return power_detrend
 
 
-def phase_detrend(utime, phase):
-    # get total length of phase time series
-    LP = len(phase)
+def phase_detrend(phase, datarate=50, cutoff=0.1):
 
-    # removing third order polynomial trend
-    x = np.arange(LP)
-    p = np.poly1d(np.polyfit(x,phase,3))
-    p1 = phase-p(x)
+    sos = signal.butter(6, cutoff, 'high', fs=datarate, output='sos')
+    phase_detrend = signal.sosfiltfilt(sos, phase)
 
-    # detrend
-    p2 = detrend(p1) # This does almost nothing?
+    return phase_detrend
 
-    # form Butterworth filter
-    dfreq = 1./(utime[-1]-utime[0])
-    cutoff = 0.1
-    order = 6
-    freq = -LP/2.*dfreq+np.arange(LP)*dfreq
-    butterhi = 1.0-1./np.sqrt(1 + (freq/cutoff)**(2*order))
+# def phase_detrend_bp(utime, phase, cutoff_low=0.0005, cutoff_high=0.1):
+#     datarate = 1./np.mean(np.diff(utime))
+#     sos = signal.butter(6, [cutoff_low, cutoff_high], 'bandpass', fs=datarate, output='sos')
+#     phase_detrend = signal.sosfiltfilt(sos, phase)
 
-    # fft of phase data?
-    phase_fft = np.fft.fftshift(np.fft.fft(np.fft.ifftshift(p2)))
-    # inverse fft of phase multiplied by the Butterworth filter
-    phase_detrend = np.fft.fftshift(np.fft.ifft(np.fft.ifftshift(phase_fft*butterhi)))
-    return np.real(phase_detrend)
+#     return phase_detrend

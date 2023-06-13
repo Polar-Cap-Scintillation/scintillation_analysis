@@ -1,16 +1,18 @@
 # scintillation_analysis
 Basic utilities for accessing and processing scintillation data
 
-Includes parsing scripts for CHAIN and CERTO data.
+## Work In Progress
 
 Focus on CHAIN data
 
-- download
+- download (complete)
 - parse files
-    - raw phase
-    - raw amplitude
-    - PRN
+    - raw phase (novatel complete)
+    - raw amplitude (novatel complete)
+    - time (novatel complete)
+    - PRN (novatel complete)
     - signal frequency
     - satellite position (az/el)?
-- basic detrending
+- calculate scintillation indices (complete)
+- basic detrending (complete)
 

@@ -60,12 +60,27 @@ def read327(f):
 
 #     f.read(4)
 
+def read48(f):
+    
+    block_data = dict()
+    data = f.read(12)
+    sat_vis, comp_alm, N = unpack('=iii', data)
+    # print('N', N, 4+N*420)
+    for _ in range(N):
+        data = f.read(40)
+        prn, _, health, el, az, tdop, adop = unpack('=hhLdddd', data)
+        block_data[prn] = {'elevation':el, 'azimuth':az}
+    f.read(4)
+    
+    return block_data
+
 
 
 
 def read_file(filename):
 
     df_all = list()
+    df_pos = list()
     with gzip.open(filename, 'rb') as f:
 
         while True:
@@ -89,13 +104,28 @@ def read_file(filename):
                         d['phase-{:02d}-L1'.format(prn)] = data['phase'][i]
                         d['power-{:02d}-L1'.format(prn)] = data['power'][i]
                     df_all.append(d)
-                    
+                
+            # elif MessageID == 274:
+            #     print('Message ID 274')
+            #     f.read(MessageLength+4)
+
+            elif MessageID == 48:
+                # print('Message ID 48')
+                df = read48(f)
+                
+                d = {'WNC':wnc, 'TOW':tow/1000.}
+                for prn, data in df.items():
+                    d['elevation-{:02d}'.format(prn)] = data['elevation']
+                    d['azimuth-{:02d}'.format(prn)] = data['azimuth']
+                # f.read(MessageLength+4)
+                df_pos.append(d)
+
                     
             else:
                 # Skip over Block
                 f.read(MessageLength+4)
     
 
-    df = pd.DataFrame(df_all)
+    # df = pd.DataFrame(df_all)
 
-    return df
+    return pd.DataFrame(df_all), pd.DataFrame(df_pos)

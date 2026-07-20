@@ -81,6 +81,7 @@ class DataManager(object):
         hours = [starttime.replace(minute=0, second=0) + dt.timedelta(hours=h) for h in range(total_hours)]
         
         frames = list()
+        ephems = list()
         for hr in hours:
             filename = self.form_filename(site, hr)
             print(hr, filename)
@@ -89,13 +90,15 @@ class DataManager(object):
                 self.download(site, hr)
 
             if self.chain_site_info[site]['model'] == 'GSV4004B':
-                frame = parse_novatel.read_file(filename)
+                frame, ephem = parse_novatel.read_file(filename)
             else:
-                frame = parse_septentrio.read_file(filename)
+                frame, ephem = parse_septentrio.read_file(filename)
 
             frames.append(frame)
+            ephems.append(ephem)
 
         data = pd.concat(frames)
+        ephem_data = pd.concat(ephems)
         
         # add UTC timestamp to dataframe
         data = data.assign(time_stamp=gps2utc(data['WNC'], data['TOW']))
@@ -103,4 +106,9 @@ class DataManager(object):
         # shorten dataframe to only times of interest
         data = data.loc[starttime.strftime('%Y-%m-%d %H:%M:%S.%f'):endtime.strftime('%Y-%m-%d %H:%M:%S.%f')]
 
-        return data
+        ephem_data = ephem_data.assign(time_stamp=gps2utc(ephem_data['WNC'], ephem_data['TOW']))
+        ephem_data = ephem_data.set_index('time_stamp')
+        # shorten dataframe to only times of interest
+        ephem_data = ephem_data.loc[starttime.strftime('%Y-%m-%d %H:%M:%S.%f'):endtime.strftime('%Y-%m-%d %H:%M:%S.%f')]
+
+        return data, ephem_data
